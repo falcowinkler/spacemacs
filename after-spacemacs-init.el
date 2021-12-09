@@ -1,7 +1,20 @@
-;(require 'ox-twbs) 
+(require 'ox-twbs)
 (require 'emojify)
 
 (spacemacs/set-leader-keys "y" smerge-basic-map)
+
+(eval-after-load "org-present"
+  '(progn
+     (add-hook 'org-present-mode-hook
+               (lambda ()
+                 (org-present-big)
+                 ))
+     (add-hook 'org-present-mode-quit-hook
+               (lambda ()
+                 (org-present-small)
+                 ))))
+
+(setq org-roam-v2-ack t)
 
 (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)
@@ -27,6 +40,19 @@
              :publishing-directory "~/Desktop/falcowinkler.github.io/images"
              :publishing-function org-publish-attachment
  )))
+
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted"))
+      org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+(defun org-swift-code-block ()
+  (interactive)
+  (save-excursion
+    (insert "#+BEGIN_SRC swift\n#+END_SRC"))
+  (next-line))
 
 (defun org-python-code-block ()
   (interactive)
@@ -56,6 +82,9 @@
 (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 ; For some reason emacs doesn't pick up the path when run from Appliactions
 (setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
+(custom-set-variables
+ '(org-directory "~/Dropbox/org")
+ '(org-agenda-files (list org-directory)))
 
 (setq org-todo-keywords
       '(
@@ -75,7 +104,8 @@
 (setq org-agenda-files '("~/org"))
 
 (setq org-twbs-postamble nil)
-(setq org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@3.7.0")
+(setq org-re-reveal-root "file:///Users/fawi/reveal.js")
+(setq org-re-reveal-revealjs-version "3.6.0")
 ;(setq org-reveal-root "file:///Users/falco.winkler/reveal.js-3.8.0")
 (setq org-reveal-title-slide nil)
 
@@ -99,3 +129,6 @@
 
 (setq-default dotspacemacs-configuration-layers
   '((javascript :variables javascript-repl `nodejs)))
+
+(with-eval-after-load 'treemacs
+  (treemacs-resize-icons 15))

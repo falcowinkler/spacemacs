@@ -3,7 +3,7 @@
 loading addtional packages
 
 #+BEGIN_SRC emacs-lisp
-;(require 'ox-twbs) 
+(require 'ox-twbs)
 (require 'emojify)
 #+END_SRC
 * magit
@@ -11,6 +11,24 @@ loading addtional packages
 (spacemacs/set-leader-keys "y" smerge-basic-map)
 #+END_SRC
 * org-mode
+** present
+ i can customize org-present behaviour here
+#+BEGIN_SRC emacs-lisp
+(eval-after-load "org-present"
+  '(progn
+     (add-hook 'org-present-mode-hook
+               (lambda ()
+                 (org-present-big)
+                 ))
+     (add-hook 'org-present-mode-quit-hook
+               (lambda ()
+                 (org-present-small)
+                 ))))
+#+END_SRC
+** roam
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-v2-ack t)
+#+END_SRC
 ** babel
 #+BEGIN_SRC emacs-lisp
     (org-babel-do-load-languages
@@ -45,7 +63,23 @@ loading addtional packages
 | org-notes | :base-directory | ~/Desktop/falcowinkler.github.io/org | :base-extension | org | :publishing-directory | ~/Desktop/falcowinkler.github.io | :recursive | t | :publishing-function | org-twbs-publish-to-html | :headline-levels | 4 | :auto-preamble | t | :auto-postamble | nil | :html-head-extra | <link rel="stylesheet" type="text/css" href="css/python_course.css"> |
 
 ** other
+** pdf-export
+#+BEGIN_SRC emacs-lisp
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted"))
+      org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
 *** utility functions
+#+BEGIN_SRC emacs-lisp
+(defun org-swift-code-block ()
+  (interactive)
+  (save-excursion
+    (insert "#+BEGIN_SRC swift\n#+END_SRC"))
+  (next-line))
+#+END_SRC
 #+BEGIN_SRC emacs-lisp
 (defun org-python-code-block ()
   (interactive)
@@ -53,7 +87,6 @@ loading addtional packages
     (insert "#+BEGIN_SRC python :results output :exports both\n\n#+END_SRC"))
   (next-line))
 #+END_SRC
-
 #+BEGIN_SRC emacs-lisp
 (defun org-elisp-code-block ()
   (interactive)
@@ -76,11 +109,14 @@ loading addtional packages
 *** settings 
 Disable confirmation for code evaluation
 #+BEGIN_SRC emacs-lisp
-  (defun my-org-confirm-babel-evaluate (lang body)
-    (not (member lang '("python" "dot"))))
-  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
-  ; For some reason emacs doesn't pick up the path when run from Appliactions
-  (setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
+   (defun my-org-confirm-babel-evaluate (lang body)
+     (not (member lang '("python" "dot"))))
+   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
+   ; For some reason emacs doesn't pick up the path when run from Appliactions
+   (setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
+   (custom-set-variables
+    '(org-directory "~/Dropbox/org")
+    '(org-agenda-files (list org-directory)))
 #+END_SRC
 ** org-todo
 Customize todo-states and tags
@@ -107,10 +143,11 @@ Set location of agenda files
 (setq org-default-notes-file (concat org-directory "/inbox.org"))
 ** org-exporters
 #+BEGIN_SRC emacs-lisp
-(setq org-twbs-postamble nil)
-(setq org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js@3.7.0")
-;(setq org-reveal-root "file:///Users/falco.winkler/reveal.js-3.8.0")
-(setq org-reveal-title-slide nil)
+  (setq org-twbs-postamble nil)
+  (setq org-re-reveal-root "file:///Users/fawi/reveal.js")
+  (setq org-re-reveal-revealjs-version "3.6.0")
+  ;(setq org-reveal-root "file:///Users/falco.winkler/reveal.js-3.8.0")
+  (setq org-reveal-title-slide nil)
 #+END_SRC
 Latex exporter settings
 #+BEGIN_SRC emacs-lisp
@@ -145,4 +182,9 @@ Latex exporter settings
 #+BEGIN_SRC emacs-lisp
 (setq-default dotspacemacs-configuration-layers
   '((javascript :variables javascript-repl `nodejs)))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'treemacs
+  (treemacs-resize-icons 15))
 #+END_SRC
