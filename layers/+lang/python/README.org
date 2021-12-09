@@ -155,24 +155,20 @@ To setup the pyright language server instead, use:
 #+END_SRC
 
 *** python-lsp-server
-You just have to install python language server package:
+You need to install python language server:
 
 #+BEGIN_SRC sh
-  pip install 'python-language-server[all]'
+  pip install python-lsp-server
 #+END_SRC
 
-Additionally you can install the following other packages:
+You may also be interested in installing all optional dependencies with
 
 #+BEGIN_SRC sh
-  # for import sorting
-  pip install pyls-isort
-  # for mypy checking (python 3.4+ is needed)
-  pip install pyls-mypy
-  # for formating with black
-  pip install pyls-black
-  # for detecting the use of deprecated apis
-  pip install pyls-memestra
+  pip install 'python-lsp-server[all]'
 #+END_SRC
+
+For more information on optional dependencies, as well as 3rd-party plugins, see
+[[https://github.com/python-lsp/python-lsp-server][python-lsp-server repository]].
 
 If you've installed the language server and related packages as development
 dependencies in a pipenv environment, you'll want to set the ~python-pipenv-activate~
@@ -556,6 +552,8 @@ Live coding is provided by the [[https://github.com/donkirkby/live-py-plugin][li
 | ~SPC m g u~              | navigate between usages with =anaconda-mode-find-references=                      |
 | ~SPC m h d~              | look for documentation using =helm-pydoc=                                         |
 | ~SPC m h h~              | quick documentation using anaconda                                                |
+| ~SPC m h p~              | quick documentation using pydoc (no-jedi, as =pydoc-at-point= seems broken)       |
+| ~SPC m h P~              | quick documentation using pydoc                                                   |
 | ~SPC m h H~              | open documentation in =firefox= using [[https://github.com/tsgates/pylookup][pylookup]]                                    |
 | ~SPC m S d~              | insert doc-string skeleton using [[https://github.com/naiquevin/sphinx-doc.el][sphinx-doc]]                                       |
 | ~SPC m v a~              | activate a virtual environment in any directory                                   |

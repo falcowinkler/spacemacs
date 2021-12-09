@@ -452,11 +452,7 @@ cache folder.")
                             configuration-layer-elpa-archives))
     ;; optimization, no need to activate all the packages so early
     (setq package-enable-at-startup nil)
-    (package-initialize 'noactivate)
-    ;; hack to be sure to enable insalled org from Org ELPA repository
-    (when (package-installed-p 'org)
-      (spacemacs-buffer/message "Initializing Org early...")
-      (configuration-layer//activate-package 'org))))
+    (package-initialize 'noactivate)))
 
 (defun configuration-layer//configure-quelpa ()
   "Configure `quelpa' package."
@@ -633,7 +629,7 @@ To prevent package from being installed or uninstalled set the variable
   (configuration-layer//declare-used-packages configuration-layer--used-layers)
   ;; then load the functions and finally configure the layers
   (configuration-layer//load-layers-files configuration-layer--used-layers
-                                          '("funcs.el"))
+                                          '("funcs"))
   (configuration-layer//configure-layers configuration-layer--used-layers)
   ;; load layers lazy settings
   (configuration-layer/load-auto-layer-file)
@@ -673,7 +669,7 @@ To prevent package from being installed or uninstalled set the variable
   ;; packages configuration above
   (configuration-layer//set-layers-variables configuration-layer--used-layers)
   (configuration-layer//load-layers-files configuration-layer--used-layers
-                                          '("keybindings.el"))
+                                          '("keybindings"))
   (when (spacemacs-is-dumping-p)
     ;; dump stuff in layers
     (dolist (layer-name configuration-layer--used-layers)
@@ -794,10 +790,10 @@ If USEDP or `configuration-layer--load-packages-files' is non-nil then the
                        (memq :can-shadow layer-specs))
                   (spacemacs/mplist-get-values layer-specs :can-shadow)
                 'unspecified))
-             (packages-file (concat dir "packages.el"))
+             (packages-file (locate-file "packages" (list dir) load-suffixes))
              (packages (when (and (null packages)
                                   (or usedp configuration-layer--load-packages-files)
-                                  (file-exists-p packages-file))
+                                  packages-file)
                          (configuration-layer/load-file packages-file)
                          (symbol-value (intern (format "%S-packages"
                                                        layer-name)))))
@@ -1372,14 +1368,13 @@ Possible return values:
                (directory-file-name
                 (concat configuration-layer-directory path))))
         'category
-      (let ((files (directory-files path)))
-        ;; most frequent files encoutered in a layer are tested first
-        (when (or (member "packages.el" files)
-                  (member "layers.el" files)
-                  (member "config.el" files)
-                  (member "keybindings.el" files)
-                  (member "funcs.el" files))
-          'layer)))))
+      ;; most frequent files encoutered in a layer are tested first
+      (when (or (locate-file "packages" (list path) load-suffixes)
+                (locate-file "layers" (list path) load-suffixes)
+                (locate-file "config" (list path) load-suffixes)
+                (locate-file "keybindings" (list path) load-suffixes)
+                (locate-file "funcs" (list path) load-suffixes))
+        'layer))))
 
 (defun configuration-layer//get-category-from-path (dirpath)
   "Return a category symbol from the given DIRPATH.
@@ -1508,14 +1503,14 @@ If `SKIP-LAYER-DEPS' is non nil then skip loading of layer dependenciesl"
                      (not (oref layer :deps-loaded))
                      (or usedp configuration-layer--load-packages-files))
             (oset layer :deps-loaded t)
-            (configuration-layer//load-layer-files layer-name '("layers.el"))))
+            (configuration-layer//load-layer-files layer-name '("layers"))))
       (configuration-layer//warning "Unknown declared layer %s." layer-name))))
 
 (defun configuration-layer/declare-layer-dependencies (layer-names)
   "Function to be used in `layers.el' files to declare dependencies."
   (dolist (x layer-names)
     (add-to-list 'configuration-layer--layers-dependencies x)
-    (configuration-layer//load-layer-files x '("layers.el"))))
+    (configuration-layer//load-layer-files x '("layers"))))
 
 (defun configuration-layer//declare-used-layers (layers-specs)
   "Declare used layers from LAYERS-SPECS list."
@@ -1665,7 +1660,7 @@ RNAME is the name symbol of another existing layer."
              (spacemacs-customization//create-layer-group
               layer-name
               (configuration-layer//get-layer-parent-category layer-name))))
-        (configuration-layer//load-layer-files layer-name '("config.el"))))))
+        (configuration-layer//load-layer-files layer-name '("config"))))))
 
 (defun configuration-layer//declare-used-packages (layers)
   "Declare used packages contained in LAYERS."
@@ -1692,8 +1687,7 @@ RNAME is the name symbol of another existing layer."
     (when obj
       (dolist (file files)
         (let ((file (concat (oref obj :dir) file)))
-          (if (file-exists-p file)
-              (configuration-layer/load-file file)))))))
+          (configuration-layer/load-file file t))))))
 
 (defun configuration-layer/configured-packages-stats (packages)
   "Return a statistics alist regarding the number of configured PACKAGES."
@@ -1784,7 +1778,7 @@ RNAME is the name symbol of another existing layer."
         (goto-char (point-max))
         (configuration-layer//install-packages sorted-pkg)
         (configuration-layer//configure-packages sorted-pkg)
-        (configuration-layer//load-layer-files layer '("keybindings.el"))
+        (configuration-layer//load-layer-files layer '("keybindings"))
         (oset layer :lazy-install nil)
         (switch-to-buffer last-buffer)))))
 
@@ -2165,51 +2159,64 @@ to update."
                            "%s (won't be updated because package is frozen)\n"
                          "%s\n") x) t))
             (sort (mapcar 'symbol-name update-packages) 'string<))
-      (if (and (not no-confirmation)
-               (not (yes-or-no-p
-                     (format "Do you want to update %s package(s)? "
-                             upgrade-count))))
-          (spacemacs-buffer/append "Packages update has been cancelled.\n" t)
+      (unless no-confirmation
+        (let ((answer (let ((read-answer-short t))
+                        (read-answer (format "Do you want to update %s package(s)? "
+                                             upgrade-count)
+                                     '(("yes"  ?y "upgrade all listed packages")
+                                       ("some" ?s "select packages to upgrade")
+                                       ("no"   ?n "don't upgrade packages"))))))
+          (if (string= answer "no")
+              (progn (spacemacs-buffer/append "Packages update has been cancelled.\n" t)
+                     (user-error "Packages update has been cancelled.\n"))
         ;; backup the package directory and construct an alist
         ;; variable to be cached for easy update and rollback
-        (spacemacs-buffer/append
-         "--> performing backup of package(s) to update...\n" t)
-        (spacemacs//redisplay)
-        (dolist (pkg update-packages)
-          (unless (memq pkg dotspacemacs-frozen-packages)
-            (let* ((src-dir (configuration-layer//get-package-directory pkg))
-                   (dest-dir (expand-file-name
-                              (concat rollback-dir
-                                      (file-name-as-directory
-                                       (file-name-nondirectory src-dir))))))
-              (copy-directory src-dir dest-dir 'keeptime 'create 'copy-content)
-              (push (cons pkg (file-name-nondirectory src-dir))
-                    update-packages-alist))))
-        (spacemacs/dump-vars-to-file
-         '(update-packages-alist)
-         (expand-file-name (concat rollback-dir
-                                   configuration-layer-rollback-info)))
-        (dolist (pkg update-packages)
-          (unless (memq pkg dotspacemacs-frozen-packages)
-            (setq upgraded-count (1+ upgraded-count))
-            (spacemacs-buffer/replace-last-line
-             (format "--> preparing update of package %s... [%s/%s]"
-                     pkg upgraded-count upgrade-count) t)
+            (when (string= answer "some")
+              (setq update-packages
+                    ;; 'apply nconc on list of lists' is equivalent to 'cl-remove-if nil'
+                    (apply #'nconc (mapcar (lambda (pkg)
+                                             (when (yes-or-no-p (format "Update package '%s'? " pkg))
+                                               (list pkg)))
+                             update-packages))))
+            (setq upgrade-count (length update-packages)))))
+            (spacemacs-buffer/append
+             "--> performing backup of package(s) to update...\n" t)
             (spacemacs//redisplay)
-            (configuration-layer//package-delete pkg)))
-        (spacemacs-buffer/append
-         (format "\n--> %s package(s) to be updated.\n" upgraded-count))
-        (spacemacs-buffer/append
-         (format "\nRestart Emacs to install the updated packages. %s\n"
-                 (if (member 'restart-emacs update-packages)
-                     (concat "\n(SPC q r) won't work this time, because the"
-                             "\nrestart-emacs package is being updated.")
-                   "(SPC q r)")))
-        (configuration-layer//cleanup-rollback-directory)
-        (spacemacs//redisplay)))
-    (when (eq upgrade-count 0)
-      (spacemacs-buffer/append "--> All packages are up to date.\n")
-      (spacemacs//redisplay))))
+            (dolist (pkg update-packages)
+              (unless (memq pkg dotspacemacs-frozen-packages)
+                (let* ((src-dir (configuration-layer//get-package-directory pkg))
+                       (dest-dir (expand-file-name
+                                  (concat rollback-dir
+                                          (file-name-as-directory
+                                           (file-name-nondirectory src-dir))))))
+                  (copy-directory src-dir dest-dir 'keeptime 'create 'copy-content)
+                  (push (cons pkg (file-name-nondirectory src-dir))
+                        update-packages-alist))))
+            (spacemacs/dump-vars-to-file
+             '(update-packages-alist)
+             (expand-file-name (concat rollback-dir
+                                       configuration-layer-rollback-info)))
+            (dolist (pkg update-packages)
+              (unless (memq pkg dotspacemacs-frozen-packages)
+                (setq upgraded-count (1+ upgraded-count))
+                (spacemacs-buffer/replace-last-line
+                 (format "--> preparing update of package %s... [%s/%s]"
+                         pkg upgraded-count upgrade-count) t)
+                (spacemacs//redisplay)
+                (configuration-layer//package-delete pkg)))
+            (spacemacs-buffer/append
+             (format "\n--> %s package(s) to be updated.\n" upgraded-count))
+            (spacemacs-buffer/append
+             (format "\nRestart Emacs to install the updated packages. %s\n"
+                     (if (member 'restart-emacs update-packages)
+                         (concat "\n(SPC q r) won't work this time, because the"
+                                 "\nrestart-emacs package is being updated.")
+                       "(SPC q r)")))
+            (configuration-layer//cleanup-rollback-directory)
+            (spacemacs//redisplay))
+      (when (eq upgrade-count 0)
+        (spacemacs-buffer/append "--> All packages are up to date.\n")
+        (spacemacs//redisplay))))
 
 (defun configuration-layer//ido-candidate-rollback-slot ()
   "Return a list of candidates to select a rollback slot."
@@ -2605,7 +2612,6 @@ Original code from dochang at https://github.com/dochang/elpa-clone"
   (configuration-layer/make-all-packages 'no-discover)
   (let (package-archive-contents
         (package-archives '(("melpa" . "https://melpa.org/packages/")
-                            ("org"   . "https://orgmode.org/elpa/")
                             ("gnu"   . "https://elpa.gnu.org/packages/")
                             ("nongnu" . "https://elpa.nongnu.org/nongnu/"))))
     (package-refresh-contents)
@@ -2861,9 +2867,9 @@ files."
 ARGS: format string arguments."
   (message "(Spacemacs) %s" (apply 'format msg args)))
 
-(defun configuration-layer/load-file (file)
+(defun configuration-layer/load-file (file &optional noerror)
   "Load file silently except if in debug mode."
-  (load file nil (not init-file-debug)))
+  (load file noerror (not init-file-debug)))
 
 (provide 'core-configuration-layer)
 

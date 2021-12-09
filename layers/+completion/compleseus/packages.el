@@ -26,6 +26,7 @@
     marginalia
     (compleseus-spacemacs-help :location local)
     consult
+    consult-yasnippet
     embark
     embark-consult
     orderless
@@ -36,9 +37,19 @@
      ;; TODO remove when `vertico-repeat' on ELPA
      :location (recipe :fetcher github
                        :repo "minad/vertico"))
-    (vertico-repeat
+    (vertico-directory
      :toggle (eq compleseus-engine 'vertico)
      ;; TODO remove when it's on ELPA
+     :location (recipe :fetcher url
+                       :url "https://raw.githubusercontent.com/minad/vertico/main/extensions/vertico-directory.el"))
+    (vertico-quick
+     :toggle (eq compleseus-engine 'vertico)
+     ;; TODO remove when it's on ELPA
+     :location (recipe :fetcher url
+                       :url "https://raw.githubusercontent.com/minad/vertico/main/extensions/vertico-quick.el"))
+    (vertico-repeat
+     :toggle (eq compleseus-engine 'vertico)
+     ;; TODO: Remove when https://github.com/minad/vertico/issues/83 solved.
      :location (recipe :fetcher url
                        :url "https://raw.githubusercontent.com/minad/vertico/main/extensions/vertico-repeat.el"))
     (grep :location built-in)
@@ -136,8 +147,11 @@
       "/" #'spacemacs/compleseus-search-projectile-auto
       "bb" #'spacemacs/compleseus-switch-to-buffer
       "bB" #'consult-buffer
-      "ff" #'find-file
+      "fb" #'consult-bookmark
+      "ff" #'spacemacs/compleseus-find-file
+      "fL" #'consult-locate
       "fr" #'consult-recent-file
+      "hda" #'consult-apropos
       "jm" #'consult-mark
       "jM" #'consult-global-mark
       "sb" #'consult-line-multi
@@ -205,15 +219,22 @@
     (setq consult-project-root-function
           (lambda ()
             (when-let (project (project-current))
-              (car (project-roots project)))))
+              (car (project-roots project)))))))
   ;;;; 2. projectile.el (projectile-project-root)
-    ;; (autoload 'projectile-project-root "projectile")
-    ;; (setq consult-project-root-function #'projectile-project-root)
+;; (autoload 'projectile-project-root "projectile")
+;; (setq consult-project-root-function #'projectile-project-root)
   ;;;; 3. vc.el (vc-root-dir)
-    ;; (setq consult-project-root-function #'vc-root-dir)
+;; (setq consult-project-root-function #'vc-root-dir)
   ;;;; 4. locate-dominating-file
-    ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
-    ))
+;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
+
+
+(defun compleseus/init-consult-yasnippet ()
+  (use-package consult-yasnippet
+    :defer t
+    :init
+    (spacemacs/set-leader-keys
+      "is" 'consult-yasnippet)))
 
 (defun compleseus/init-embark ()
   (use-package embark
@@ -223,16 +244,19 @@
      ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
     :init
+    (spacemacs/set-leader-keys "?" #'embark-bindings)
     ;; Optionally replace the key help with a completing-read interface
     (setq prefix-help-command #'embark-prefix-help-command)
-
+    ;; same key binding as ivy-occur
+    (define-key minibuffer-local-map (kbd "C-c C-o") #'embark-export)
     :config
-    ;; Hide the mode line of the Embark live/completions buffers
-    ;; (add-to-list 'display-buffer-alist
-    ;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-    ;;                nil
-    ;;                (window-parameters (mode-line-format . none))))
-    ))
+    (define-key embark-file-map "s" 'spacemacs/compleseus-search-from)))
+;; Hide the mode line of the Embark live/completions buffers
+;; (add-to-list 'display-buffer-alist
+;;              '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+;;                nil
+;;                (window-parameters (mode-line-format . none))))
+
 
 (defun compleseus/init-embark-consult ()
   (use-package embark-consult
@@ -245,13 +269,11 @@
     (embark-collect-mode . consult-preview-at-point-mode)))
 
 (defun compleseus/init-orderless ()
-  (use-package orderless)
+  (use-package orderless
   :init
-  (setq completion-styles '(orderless)
-        ;; for ssh completion
-        completion-category-overrides '((file (styles basic partial-completion)))
+  (setq completion-styles '(basic partial-completion orderless)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion))))))
+        completion-category-overrides '((file (styles . (partial-completion)))))))
 
 (defun compleseus/init-selectrum ()
   (use-package selectrum
@@ -283,8 +305,16 @@
           '(read-only t cursor-intangible t face minibuffer-prompt))
     (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
+    ;; Cleans up path when moving directories with shadowed paths syntax, e.g.
+    ;; cleans ~/foo/bar/// to /, and ~/foo/bar/~/ to ~/.
+    (add-hook 'rfn-eshadow-update-overlay-hook #'vertico-directory-tidy)
+
     ;; Enable recursive minibuffers
     (setq enable-recursive-minibuffers t)
+
+    ;; when vertico is used set this so tab when doing M-: will show suggestions
+    ;; https://github.com/minad/vertico/issues/24
+    (setq completion-in-region-function #'consult-completion-in-region)
 
     ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
     ;; (setq vertico-cycle t)
@@ -298,16 +328,31 @@
     (define-key vertico-map (kbd "C-k") #'vertico-previous)
     (define-key vertico-map (kbd "C-M-k") #'spacemacs/previous-candidate-preview)
     (define-key vertico-map (kbd "C-S-k") #'vertico-previous-group)
-    (define-key vertico-map (kbd "C-r") 'consult-history)))
+    (define-key vertico-map (kbd "C-r") #'consult-history)))
+
+(defun compleseus/init-vertico-quick ()
+  (use-package vertico-quick
+    :after vertico
+    :init
+    (define-key vertico-map "\M-q" #'vertico-quick-insert)
+    (define-key vertico-map "\C-q" #'vertico-quick-exit)))
 
 (defun compleseus/init-vertico-repeat ()
   (use-package vertico-repeat
     :after vertico
     :init
+    (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
     (spacemacs/set-leader-keys
       "rl" 'vertico-repeat
       "sl" 'vertico-repeat)))
 
+(defun compleseus/init-vertico-directory ()
+  (use-package vertico-directory
+    ;; More convenient directory navigation commands
+    :bind (:map vertico-map
+                ("C-h" . vertico-directory-delete-char))
+    ;; Tidy shadowed file names
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)))
 
 (defun spacemacs/compleseus-wgrep-change-to-wgrep-mode ()
   (interactive)
