@@ -34,6 +34,8 @@ loading addtional packages
     (org-babel-do-load-languages
      'org-babel-load-languages '((C . t)
                                  (python . t)
+                                 (ledger . t)
+                                 (haskell . nil)
                                  (dot . t)))
   (setq org-babel-python-command "python3")
 #+END_SRC
