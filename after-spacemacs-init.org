@@ -35,9 +35,12 @@ loading addtional packages
      'org-babel-load-languages '((C . t)
                                  (python . t)
                                  (ledger . t)
-                                 (haskell . nil)
                                  (dot . t)))
   (setq org-babel-python-command "python3")
+; Don't ask for confirmation when evaluating ledger or dot files
+(defun ck/org-confirm-babel-evaluate (lang body)
+  (not (or (string= lang "ledger") (string= lang "dot"))))
+(setq org-confirm-babel-evaluate 'ck/org-confirm-babel-evaluate)
 #+END_SRC
 ** site-publish
 #+BEGIN_SRC emacs-lisp
@@ -142,7 +145,14 @@ Set location of agenda files
 #+BEGIN_SRC emacs-lisp
 (setq org-agenda-files '("~/org"))
 #+END_SRC
-(setq org-default-notes-file (concat org-directory "/inbox.org"))
+Org capture:
+#+begin_src emacs-lisp
+  (setq org-default-notes-file (concat org-directory "~/inbox.org"))
+  (setq org-capture-templates
+      '(("t" "Todo" entry (file "~/Dropbox/org/inbox.org")
+         "* TODO %?\n  %i\n  %a")
+        ))
+#+end_src
 ** org-exporters
 #+BEGIN_SRC emacs-lisp
   (setq org-twbs-postamble nil)
@@ -150,6 +160,11 @@ Set location of agenda files
   (setq org-re-reveal-revealjs-version "3.6.0")
   ;(setq org-reveal-root "file:///Users/falco.winkler/reveal.js-3.8.0")
   (setq org-reveal-title-slide nil)
+** other org-mode settings
+#+BEGIN_SRC emacs-lisp
+  (setq org-src-preserve-indentation t)
+#+END_SRC
+
 #+END_SRC
 Latex exporter settings
 #+BEGIN_SRC emacs-lisp
