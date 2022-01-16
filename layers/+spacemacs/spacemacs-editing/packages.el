@@ -43,8 +43,7 @@
         (spacemacs-whitespace-cleanup :location local)
         string-edit
         string-inflection
-        ;multi-line
-        ;why multiline doesn't work?
+        multi-line
         undo-tree
         (unkillable-scratch :toggle dotspacemacs-scratch-buffer-unkillable)
         uuidgen
