@@ -19,8 +19,13 @@
 (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)
                                (python . t)
+                               (ledger . t)
+                               (haskell . nil)
                                (dot . t)))
 (setq org-babel-python-command "python3")
+(defun my-org-confirm-babel-evaluate (lang body)
+  (not (member lang '("python" "dot" "latex" "ledger"))))
+(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
 (setq org-publish-project-alist 
           '(("site"
@@ -40,6 +45,8 @@
              :publishing-directory "~/Desktop/falcowinkler.github.io/images"
              :publishing-function org-publish-attachment
  )))
+
+(setq org-src-preserve-indentation t)
 
 (setq org-latex-listings 'minted
       org-latex-packages-alist '(("" "minted"))
@@ -77,9 +84,6 @@
                     "[[file:x.svg]]"))
     (next-line)))
 
-(defun my-org-confirm-babel-evaluate (lang body)
-  (not (member lang '("python" "dot"))))
-(setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 ; For some reason emacs doesn't pick up the path when run from Appliactions
 (setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
 (custom-set-variables
@@ -101,7 +105,13 @@
         ("SOMEDAY" . (:foreground "LimeGreen" :weight bold))
         ))
 
-(setq org-agenda-files '("~/org"))
+(setq org-default-notes-file (concat org-directory "~/inbox.org"))
+(setq org-capture-templates
+      '(("t" "Todo" entry (file "~/Dropbox/org/inbox.org")
+         "* TODO %?\n  %i\n  %a")
+        ))
+
+(setq org-agenda-files '("~/Dropbox/org/"))
 
 (setq org-twbs-postamble nil)
 (setq org-re-reveal-root "file:///Users/fawi/reveal.js")

@@ -38,6 +38,9 @@ loading addtional packages
                                  (haskell . nil)
                                  (dot . t)))
   (setq org-babel-python-command "python3")
+  (defun my-org-confirm-babel-evaluate (lang body)
+    (not (member lang '("python" "dot" "latex" "ledger"))))
+  (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 #+END_SRC
 ** site-publish
 #+BEGIN_SRC emacs-lisp
@@ -65,6 +68,9 @@ loading addtional packages
 | org-notes | :base-directory | ~/Desktop/falcowinkler.github.io/org | :base-extension | org | :publishing-directory | ~/Desktop/falcowinkler.github.io | :recursive | t | :publishing-function | org-twbs-publish-to-html | :headline-levels | 4 | :auto-preamble | t | :auto-postamble | nil | :html-head-extra | <link rel="stylesheet" type="text/css" href="css/python_course.css"> |
 
 ** other
+#+BEGIN_SRC emacs-lisp
+(setq org-src-preserve-indentation t)
+#+END_SRC
 ** pdf-export
 #+BEGIN_SRC emacs-lisp
 (setq org-latex-listings 'minted
@@ -111,9 +117,6 @@ loading addtional packages
 *** settings 
 Disable confirmation for code evaluation
 #+BEGIN_SRC emacs-lisp
-   (defun my-org-confirm-babel-evaluate (lang body)
-     (not (member lang '("python" "dot"))))
-   (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
    ; For some reason emacs doesn't pick up the path when run from Appliactions
    (setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
    (custom-set-variables
@@ -137,10 +140,16 @@ Customize todo-states and tags
         ("DELEGATED" . (:foreground "LimeGreen" :weight bold))
         ("SOMEDAY" . (:foreground "LimeGreen" :weight bold))
         ))
+
+(setq org-default-notes-file (concat org-directory "~/inbox.org"))
+(setq org-capture-templates
+      '(("t" "Todo" entry (file "~/Dropbox/org/inbox.org")
+         "* TODO %?\n  %i\n  %a")
+        ))
 #+END_SRC
 Set location of agenda files
 #+BEGIN_SRC emacs-lisp
-(setq org-agenda-files '("~/org"))
+(setq org-agenda-files '("~/Dropbox/org/"))
 #+END_SRC
 (setq org-default-notes-file (concat org-directory "/inbox.org"))
 ** org-exporters
