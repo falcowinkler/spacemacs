@@ -1,6 +1,7 @@
 (require 'ox-twbs)
 (require 'emojify)
 
+(require 'magit); To avoid Symbol’s value as variable is void: smerge-basic-map
 (spacemacs/set-leader-keys "y" smerge-basic-map)
 
 (eval-after-load "org-present"
@@ -120,6 +121,9 @@
 (setq org-reveal-title-slide nil)
 
 (setq org-latex-pdf-process (quote ("texi2dvi -p -b -V %f")))
+
+(setq org-roam-directory (file-truename "~/Dropbox/org/roam"))
+(org-roam-db-autosync-mode)
 
 ;; (dap-register-debug-template
 ;;  "default pytest debur"

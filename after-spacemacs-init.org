@@ -8,6 +8,7 @@ loading addtional packages
 #+END_SRC
 * magit
   #+BEGIN_SRC emacs-lisp
+(require 'magit); To avoid Symbol’s value as variable is void: smerge-basic-map
 (spacemacs/set-leader-keys "y" smerge-basic-map)
 #+END_SRC
 * org-mode
@@ -163,6 +164,11 @@ Set location of agenda files
 Latex exporter settings
 #+BEGIN_SRC emacs-lisp
   (setq org-latex-pdf-process (quote ("texi2dvi -p -b -V %f")))
+#+END_SRC
+* org-roam
+#+BEGIN_SRC emacs-lisp
+(setq org-roam-directory (file-truename "~/Dropbox/org/roam"))
+(org-roam-db-autosync-mode)
 #+END_SRC
 * dap
 #+BEGIN_SRC emacs-lisp
