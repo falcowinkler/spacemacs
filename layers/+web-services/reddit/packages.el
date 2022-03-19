@@ -27,8 +27,9 @@
 (defun reddit/init-reddigg ()
   (use-package reddigg
     :defer t
-    :init (progn
-            (spacemacs/declare-prefix "awr" "reddit")
-            (spacemacs/set-leader-keys
-              "awrm" 'reddigg-view-main
-              "awrs" 'reddigg-view-sub))))
+    :init
+    (progn
+      (spacemacs/declare-prefix "awr" "reddit")
+      (spacemacs/set-leader-keys
+        "awrm" 'reddigg-view-main
+        "awrs" 'reddigg-view-sub))))

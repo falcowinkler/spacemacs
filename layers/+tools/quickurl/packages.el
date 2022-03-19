@@ -1,4 +1,4 @@
-;;; keybindings.el --- Quickurl dispatch layer.
+;;; packages.el --- Quickurl dispatch layer.
 ;;
 ;; Copyright (c) 2012-2021 Sylvain Benner & Contributors
 ;;
@@ -20,14 +20,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+(defconst quickurl-packages
+  '((quickurl :location built-in)))
 
-;; Keybindings to use Quickurl, including mode-local ones for the listing.
-
-(spacemacs/declare-prefix "atq" "quickurl")
-(spacemacs/set-leader-keys
-  "atql" 'quickurl-list
-  "atqq" 'quickurl
-  "atqi" 'quickurl-ask
-  "atqe" 'quickurl-edit-urls
-  "atqa" 'quickurl-add-url
-  "atqb" 'quickurl-browse-url-ask)
+(defun quickurl/init-quickurl ()
+  (spacemacs/declare-prefix "atq" "quickurl")
+  (spacemacs/set-leader-keys
+    "atql" 'quickurl-list
+    "atqq" 'quickurl
+    "atqi" 'quickurl-ask
+    "atqe" 'quickurl-edit-urls
+    "atqa" 'quickurl-add-url
+    "atqb" 'quickurl-browse-url-ask))

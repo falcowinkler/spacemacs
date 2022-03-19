@@ -547,6 +547,7 @@ Other:
   - =.gitignore= now ignores tag files and the bbdb database.
   - =.gitignore= now ignores org-journal-cache-file (thanks to Benjamin Hipple)
   - =.gitignore= now ignores image-dired-dir (thanks to Alfonso Montero)
+  - =.gitignore= now ignores devdocs (thanks to Alfonso Montero)
   - Added =vim-style-visual-feedback= and =hybrid-style-visual-feedback= style
     variables to enable =evil-goggles= pulse in the Vim and Hybrid editing
     styles, respectively; disabled by default (thanks to Sylvain Benner)
@@ -1474,6 +1475,7 @@ Other:
   - Handled buffer move/select/swap to last window nr +1 (thanks to duianto)
   - Set =evil-undo-system= to =undo-tree= (thanks to duianto)
   - Checked that =evil-undo-system= exists before it's called (thanks to khjcph)
+  - Fixed ~SPC w TAB~ golden-ratio resizing.
 *** Layer changes and fixes
 **** Agda
 - Fixes
@@ -1509,6 +1511,7 @@ Other:
   - Added =yasnippet-snippets= package (thanks to Jack Kamm)
   - Added =ivy-yasnippet= (thanks to Kalle Lindqvist)
   - Added =company-box= (thanks to Tianyao Chou)
+  - Added =company-posframe= (thanks to Thanh Vuong)
 - Improvements:
   - Added =autocomplete-idle-delay= layer variable, which Spacemacs uses to set
     =company-idle-delay= or =ac-delay= (thanks to Benjamin Hipple)
@@ -1631,6 +1634,7 @@ Other:
   - Added =flycheck-clojure= linters (thanks to Eugene Yaremenko)
   - Added =clj-kondo= to Clojure linters (thanks to Luo Tian and John Stevenson)
   - Added =flycheck-joker= to Clojure linters (thanks to didibus)
+  - Added =kaocha-runner= to Clojure linters (thanks to practicalli-john)
 - Improvements:
   - Stored cider REPL history in spacemacs cache (thanks to Ryan Fowler)
   - Removed backtick from smartparens pairs for Clojure
@@ -2015,6 +2019,7 @@ Other:
     - ~SPC m r d l~ for  =emr-delete-let-binding-form=
     - ~SPC m r d d~ for  =emr-delete-unused-definition=
     - ~SPC m e w~   for   =emr-eval-and-replace=
+- Added =elisp-def= integration (thanks to Thanh Vuong)
 **** Emoji
 - Added support for Emoji fonts on macOS and Linux (thanks to CodeFalling)
 - Setup =emojify= cache directory (thanks to Boris Buliga)
@@ -2168,6 +2173,8 @@ Other:
   - Restore magit transient args between sessions (thanks to duianto)
 - Improvements:
   - Added orgit-forge (thanks to Ag Ibragimov)
+  - Add Magit Forge configuration documentation & basic git configuration
+    (thanks to practicalli-john)
 **** Gnus
 - Key bindings:
   - Added ~g r~ for =gnus-group-get-new-news= (thanks to Matthew Leach)
@@ -2854,6 +2861,7 @@ files (thanks to Daniel Nicolai)
   function (thanks to Profpatsch)
 - Associate nix-mode with .nix files (thanks to jpathy)
 - Updated layer banner (thanks to kalium)
+- Added experimental LSP support (thanks to LuisChDev)
 **** Nim
 - Added key binding ~SPC m h h~ to show symbol documentation
   (thanks to Valts Liepiņš)
@@ -2888,8 +2896,13 @@ files (thanks to Daniel Nicolai)
 - Fixed ocamlformat not properly initialized by following do (thanks to Nicolas Raymond)
 - Allow new OPAM share commandline syntax (thanks to Cody McKenzie)
 **** Org
+- Add initial =org-transclusion= support behind =org-enable-transclusion-support=
+  flag (thanks to Keith Pinson).
+- When =org-appear= is set to be triggered manually and Spacemacs' editing mode is
+  Vim or hybrid, register relevant =org-appear= commands in Evil hooks for Org
+  buffers (thanks to Keith Pinson).
 - Provide some sane default strategies for enforcing =TODO= dependencies via
-  =org-todo-dependencies-strategy=. (thanks to Keith Pinson)
+  =org-todo-dependencies-strategy= (thanks to Keith Pinson).
 - Load org-mode email integration (mu4e/notmuch) when org is loaded
   (thanks to Steven Allen)
 - Packages:
@@ -3077,6 +3090,7 @@ files (thanks to Daniel Nicolai)
   =org-insert-structure-template= commands (thanks to Andriy Kmit')
 - Added =ox-asciidoc= as org export backend (thanks to Christian "West" Westrom)
 - Fix org-roam v2 compatibility (thanks to Alex Kapranoff and Caleb Rogers)
+- Fix =space-doc.el= to use cl-return (thanks to practicalli-john)
 **** Osx
 - Key bindings:
   - Added key bindings to use ~command-1..9~ for selecting window
@@ -3420,6 +3434,8 @@ files (thanks to Daniel Nicolai)
     - ~SPC c s d~ Copy rpms to the phone
     - ~SPC c s i~ Install rpms into target
 **** Scala
+- Shortcut key for compiling tests in SBT without running them (~Test / compile~)
+  (thanks to Keith Pinson)
 - Shortcut keys for common/standard SBT commands (~scalafmtAll~, ~compile~ and ~test~)
   (thanks to Keith Pinson)
 - Remove long-deprecated Ensime support (thanks to Keith Pinson)
@@ -3625,6 +3641,7 @@ files (thanks to Daniel Nicolai)
 **** Systemd
 - Added support for syntax checking with =flycheck= (thanks to Steven Allen)
 - Added support for lazy installation (thanks to Wieland Hoffmann)
+- Added support for =journalctl-mode= (thanks to Benedikt Broich)
 **** Terraform
 - Added opt-in layer variable =terraform-fmt-on-save= to format buffers on save
   with =terraform fmt= (thanks to Harry Hull)
