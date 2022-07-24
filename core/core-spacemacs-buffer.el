@@ -1,6 +1,6 @@
-;;; core-spacemacs-buffer.el --- Spacemacs Core File
+;;; core-spacemacs-buffer.el --- Spacemacs Core File -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2012-2021 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -27,6 +27,7 @@
   (defvar dotspacemacs-filepath)
   (defvar dotspacemacs-show-startup-list-numbers)
   (defvar dotspacemacs-startup-banner)
+  (defvar dotspacemacs-startup-banner-scale)
   (defvar dotspacemacs-startup-buffer-show-icons)
   (defvar spacemacs-badge-official-png)
   (defvar spacemacs-banner-directory)
@@ -261,15 +262,53 @@ If ALL is non-nil then truly all banners can be selected."
   "Return the full path to banner with index INDEX."
   (concat spacemacs-banner-directory (format "%03d-banner.txt" index)))
 
+(defun spacemacs-buffer//banner-fit-height-size ()
+  "Calculate height of startup banner to fit buffer contents.
+Returns height in units of line height with a minimum of 1."
+  ;; first determine number of lines occupied by startup list
+  (let* ((startup-list-line-height
+          ;; the all-the-icons package is not available here yet, but we don't
+          ;; require icons for just counting the lines in the
+          ;; `dotspacemacs-startup-lists'
+          (let ((icons dotspacemacs-startup-buffer-show-icons)
+                lines)
+            (setq dotspacemacs-startup-buffer-show-icons nil)
+	          (setq lines (with-temp-buffer
+                          (spacemacs-buffer//do-insert-startupify-lists)
+                          (recentf-mode -1)
+                          (line-number-at-pos)))
+              ;; (count-lines (point-min) (point-max)))
+            (setq dotspacemacs-startup-buffer-show-icons icons)
+            lines))
+         ;; We determine the maximum available banner height by subtracting the
+         ;; number of lines in the home buffer contents (excl. logo and
+         ;; startup-list), i.e. `26', and the number of lines in the startup
+         ;; list from the total available text lines
+         (image-height (- (window-text-height) 26 startup-list-line-height)))
+    ;; return image-height with minimum of 3 line heights
+    (max image-height 3)))
+
 (defun spacemacs-buffer//insert-image-banner (banner)
   "Display an image banner.
 BANNER: the path to an ascii banner file."
   (when (file-exists-p banner)
     (let* ((title spacemacs-buffer-logo-title)
            (spec (create-image banner))
-           (size (image-size spec))
+           ;; we must use the scaled size for determining the correct
+           ;; left-margin size
+           (unscaled-size (image-size spec)) ;; size in 'canonical character units'
+           (height (cdr unscaled-size)) ;; return size in units of line heights
+           (scale (pcase dotspacemacs-startup-banner-scale
+                    ('auto (let ((factor (/ (float (spacemacs-buffer//banner-fit-height-size))
+                                            height)))
+                             ;; return factor with maximum of 1
+                             (min factor 1)))
+                    (factor factor)))
+           (size (cons (* scale (car unscaled-size)) (* scale (cdr unscaled-size))))
            (width (car size))
            (left-margin (max 0 (floor (- spacemacs-buffer--window-width width) 2))))
+      ;; we scale the image by simply setting the scale property in the image-spec
+      (plist-put (cdr spec) :scale scale)
       (insert (make-string left-margin ?\s))
       (insert-image spec)
       (insert "\n\n")
@@ -458,7 +497,7 @@ BOTCAPTION: a text to be encrusted at the bottom of the frame.
 ADDITIONAL-WIDGETS: a function for inserting a widget under the frame."
   (save-excursion
     (goto-char (point-min))
-    (search-forward "Search in Spacemacs\]") ; TODO: this is dirty
+    (search-forward "Search in Spacemacs\]" nil "move to limit") ; TODO: this is dirty
     (forward-line)
     (let* ((buffer-read-only nil)
            (note (concat "\n"
@@ -799,16 +838,16 @@ in for example the `view-lossage' (C-h l) buffer:
 instead of:
  r                      ;; anonymous-command
  p                      ;; anonymous-command"
-  (let* ((func-name (spacemacs-buffer//startup-list-jump-func-name search-label))
-         (func-name-symbol (intern func-name)))
-    (eval `(defun ,func-name-symbol ()
-             (interactive)
-             (unless (search-forward ,search-label (point-max) t)
-               (search-backward ,search-label (point-min) t))
-             ,@(unless no-next-line
-                 '((forward-line 1)))
-             (back-to-indentation)))
-    `(define-key spacemacs-buffer-mode-map ,shortcut-char ',func-name-symbol)))
+  (let ((func-name-symbol
+         (intern (spacemacs-buffer//startup-list-jump-func-name search-label))))
+    `(progn (defun ,func-name-symbol ()
+              (interactive)
+              (unless (search-forward ,search-label (point-max) t)
+                (search-backward ,search-label (point-min) t))
+              ,@(unless no-next-line
+                  '((forward-line 1)))
+              (back-to-indentation))
+            (define-key spacemacs-buffer-mode-map ,shortcut-char ',func-name-symbol))))
 
 (defun spacemacs-buffer//center-line (&optional real-width)
   "When point is at the end of a line, center it.
@@ -1219,7 +1258,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
 (defun spacemacs-buffer//insert-errors ()
   (when (spacemacs-buffer//insert-string-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-material "error" :face 'font-lock-keyword-face)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-material "error" :face 'font-lock-keyword-face))
           "Errors:" "e")
          spacemacs-buffer--errors)
     (spacemacs-buffer||add-shortcut "e" "Errors:")
@@ -1228,7 +1268,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
 (defun spacemacs-buffer//insert-warnings ()
   (when (spacemacs-buffer//insert-string-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-material "warning" :face 'font-lock-keyword-face)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-material "warning" :face 'font-lock-keyword-face))
           "Warnings:" "w")
          spacemacs-buffer--warnings)
     (spacemacs-buffer||add-shortcut "w" "Warnings:")
@@ -1249,7 +1290,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
         (spacemacs//subseq spacemacs-buffer//recent-files-list 0 list-size))
   (when (spacemacs-buffer//insert-file-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "history" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "history" :face 'font-lock-keyword-face :v-adjust -0.05))
           "Recent Files:" "r")
          spacemacs-buffer//recent-files-list)
     (spacemacs-buffer||add-shortcut "r" "Recent Files:"))
@@ -1260,7 +1302,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
   (unless projectile-mode (projectile-mode))
   (when (spacemacs-buffer//insert-files-by-dir-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "rocket" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "rocket" :face 'font-lock-keyword-face :v-adjust -0.05))
           "Recent Files by Project:" "R")
          (mapcar (lambda (group)
                    (cons (car group)
@@ -1276,7 +1319,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
 (defun spacemacs-buffer//insert-todos (list-size)
   (when (spacemacs-buffer//insert-todo-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "check" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "check" :face 'font-lock-keyword-face :v-adjust -0.05))
           "To-Do:" "d")
          (spacemacs//subseq (spacemacs-buffer//todo-list)
                             0 list-size))
@@ -1286,7 +1330,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
 (defun spacemacs-buffer//insert-agenda (list-size)
   (when (spacemacs-buffer//insert-todo-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "calendar" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "calendar" :face 'font-lock-keyword-face :v-adjust -0.05))
           "Agenda:" "c")
          (spacemacs//subseq (spacemacs-buffer//agenda-list)
                             0 list-size))
@@ -1299,7 +1344,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
   (require 'bookmark)
   (when (spacemacs-buffer//insert-bookmark-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "bookmark" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "bookmark" :face 'font-lock-keyword-face :v-adjust -0.05))
           "Bookmarks:" "b")
          (spacemacs//subseq (bookmark-all-names)
                             0 list-size))
@@ -1310,7 +1356,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
   (unless projectile-mode (projectile-mode))
   (when (spacemacs-buffer//insert-file-list
          (spacemacs-buffer||propertize-heading
-          (all-the-icons-octicon "rocket" :face 'font-lock-keyword-face :v-adjust -0.05)
+          (when dotspacemacs-startup-buffer-show-icons
+            (all-the-icons-octicon "rocket" :face 'font-lock-keyword-face :v-adjust -0.05))
           "Projects:" "p")
          (spacemacs//subseq (projectile-relevant-known-projects)
                             0 list-size))
@@ -1339,7 +1386,8 @@ SEQ, START and END are the same arguments as for `cl-subseq'"
           (spacemacs-buffer//insert-errors)
           (spacemacs-buffer//insert-warnings))
          ((eq el 'recents) (spacemacs-buffer//insert-recent-files list-size))
-         ((eq el 'recents-by-project)
+         ((and (eq el 'recents-by-project)
+	       (fboundp 'projectile-mode))
           (spacemacs-buffer//insert-recent-files-by-project list-size))
          ((eq el 'todos) (spacemacs-buffer//insert-todos list-size))
          ((eq el 'agenda) (spacemacs-buffer//insert-agenda list-size))

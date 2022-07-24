@@ -1,6 +1,6 @@
 ;;; packages.el --- eaf layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2021 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
 ;;
 ;; Author: Daniel Nicolai <dalanicolai@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -224,7 +224,7 @@
               (pcase eaf--buffer-app-name
                 ((or
                   (and "browser"
-                       (guard (not (string= (eaf-call-sync "call_function" eaf--buffer-id "is_focus") "True"))))
+                       (guard (not (eaf-call-sync "execute_function" eaf--buffer-id "is_focus"))))
                   "image-viewer"
                   "pdf-viewer")
                  (kbd eaf-evil-leader-key))
@@ -245,6 +245,6 @@
       (define-key key-translation-map (kbd ",")
         (lambda (prompt)
           (if (derived-mode-p 'eaf-mode)
-              (if (string= (eaf-call-sync "call_function" eaf--buffer-id "is_focus") "True")
+              (if (eaf-call-sync "execute_function" eaf--buffer-id "is_focus")
                   (kbd ",")
                 (kbd "C-,"))))))))

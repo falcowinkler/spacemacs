@@ -127,6 +127,8 @@ the [[file:CHANGELOG.org][CHANGELOG.org]] file.
     (thanks to Seong Yong-ju)
   - Changed ~SPC t t m~ from ~timeclock-modeline-display~ which was deprecated
     in Emacs 24.3 to ~timeclock-mode-line-display~ (thanks to Zach Pearson)
+  - Added =vim-style-enable-undo-region= style variables to enable undo-region
+    in Vim editing style; disabled by default. (thanks to Benedict HW)
 - Other:
   - Support for multiple cursors using =evil-mc= is now encapsulated in the
     =multiple-cursors= layer (thanks to Codruț Constantin Gușoi)
@@ -339,6 +341,7 @@ In org-agenda-mode
 ***** Search-engine
   - Add Debian & Ubuntu package search engines (thanks to Alfonso Montero).
   - Allow to configure a TLD other than =.com= for Amazon searches (thanks to Alfonso Montero).
+  - Add Rails API search engine
 ***** Spacemacs-navigation
 - Key bindings:
   - Add ~J/K~ to scroll up/down (or next/previous node) in Info-mode
@@ -414,6 +417,7 @@ In org-agenda-mode
 - extempore (thanks to Ben Swift)
 - factor (thanks to timor)
 - forth (thanks to Tim Jaeger)
+- fountain (thanks to Damien Picard)
 - gpu (thanks to Evan Klitzke)
 - groovy (thanks to Sylvain Benner)
 - hy (thanks to Sylvain Benner and yuhan0)
@@ -479,6 +483,7 @@ In org-agenda-mode
 - sphinx (thanks to Wei-Wei Guo)
 - tern (thanks to Sylvain Benner and Juuso Valkeejärvi)
 - tide (thanks to Thanh Vuong)
+- translate (thanks to Ray Wang)
 - transmission (thanks to Eugene Yaremenko)
 - web-beautify (thanks to Sylvain Benner and Juuso Valkeejärvi)
 - xclipboard (thanks to Charles Weill, Sylvain Benner, and Alex Palaistras)
@@ -540,6 +545,7 @@ In org-agenda-mode
   - New var =dotspacemacs-startup-buffer-multi-digit-delay= (thanks to duianto)
   - New variable =dotspacemacs-scroll-bar-while-scrolling= (thanks to duianto)
   - New variable =dotspacemacs-show-startup-list-numbers= (thanks to duianto)
+  - New variable =dotspacemacs-startup-banner-scale= (thanks to Daniel)
 - Removed Variables:
   - Removed unused variable =dotspacemacs-verbose-loading= from
     =.spacemacs.template= (thanks to Ying Qu)
@@ -817,6 +823,7 @@ Other:
     default (thanks to Daniel Nicolai)
   - Add evil-jump-backward/forward (=C-o=/=C-i=) keybindings to
     evil-evilified-state-map (thanks to Daniel Nicolai)
+  - Improve helm completion in spacemacs-help (thanks to @dankessler)
 *** Distribution changes
 - Refactored =spacemacs-bootstrap=, =spacemacs-ui=, and =spacemacs-ui-visual=
   layers:
@@ -1624,6 +1631,8 @@ Other:
   - Added =fcitx5= support (thanks to wgjak47)
 - Fixes:
   - Make =fcitx.el= work by default (thanks to AmaiKinono)
+  - Evilify the pyim-dict-manager-mode-map after the pyim-dict-manager-mode be
+    loaded (thanks to Lin Sun)
 **** Chrome
 - Key bindings:
   - Added =markdown= key bindings to gmail message mode
@@ -2096,6 +2105,9 @@ Other:
 - Show user error when location is not set in theme changer
   (thanks to Boris Buliga)
 **** GitHub
+- Layer:
+  - marked as deprecated as functionality is all in =git= layer (thanks
+    to practicalli-john)
 - Packages:
   - Added new packages =forge= (thanks to Miciah Dashiel Butler Masters)
   - Do not install =forge= on Windows by default, see =README.org= of the layer
@@ -2123,6 +2135,8 @@ Other:
   - Remove package =magit-gh-pulls= as it was deprecated in favor of =magithub=
     and =forge= (thanks to Robby O'Connor)
   - Made magithub offline by default (thanks to Miciah Masters)
+- Removed =git-clone= and  =git-search= packages for not using a secure means to
+  store access tokens #1153777 (thanks to @practicalli-john)
 **** Git
 - Key bindings:
   - ~SPC g c~ to clone a repository (thanks to Steven Allen)
@@ -2145,6 +2159,8 @@ Other:
   - Unbind ~C-f~ from =magit-gitflow-popup= (thanks to rayw000)
   - Implement performance hack for MacOS mentioned in Magit manual (thanks to
     Keith Pinson)
+  - Magit Forge key bindings for editing a topic, i.e. issue, PR (thanks to
+    @practicalli-john & @nickanderson)
 - Fixes:
   - Install magit-svn by default and activate with git-enable-magit-svn-plugin
   - Added feature to toggle =evil-magit= based on editing style
@@ -2679,6 +2695,7 @@ files (thanks to Daniel Nicolai)
   compiled PDF is changed (thanks to Lucius Hu)
 - Automatically configure =pdf-tools= as pdf viewer for =TeX-view= command (by default) (Thanks to Daniel Nicolai)
 - Add layer variable to open =pdf-tools= in split window (Thanks to Daniel Nicolai)
+- New package =evil-tex= (thanks to Dan Kessler)
 **** Lua
 - Added support for auto-completion with =company= (thanks to halfcrazy)
 - Added support for =LSP= (EmmyLua-LS-all, lua-language-server, lua-lsp) (thanks to Lin.Sun)
@@ -2884,6 +2901,7 @@ files (thanks to Daniel Nicolai)
 - Change the ~C-n~ and ~C-p~ message keys to their original ~N~ and ~P~ bindings
 - Edit require from =org-notmuch= to =ol-notmuch= as per org-mode update 9.3.1
   (thanks to Loys Ollivier)
+- Fix address completion in notmuch-message mode (thanks to Mattijs Korpershoek)
 **** OCaml
 - Allow initialization without requiring =opam= (thanks to Bernhard Schommer)
 - Fixed misused functions, =merlin= is a package not a layer
@@ -2916,6 +2934,7 @@ files (thanks to Daniel Nicolai)
   - Added package =org-contacts= (thanks to Daniel Nicolai)
   - Added package =org-appear= (thanks to winsphinX)
   - Added package =org-wild-notifier= (thanks to Daniel Nicolai)
+  - Added package =org-roam-ui= (thanks to winsphinX)
 - Key bindings:
   - ~SPC m s y~ for =org-copy-subtree= (thanks to Keith Pinson)
   - ~SPC m T i~ to toggle inline images
@@ -3122,6 +3141,7 @@ files (thanks to Daniel Nicolai)
 - Added declaration for the ~SPC P~ prefix (thanks to Codruț Constantin Gușoi)
 **** Pdf
 - Fixed ~'~ =pdf-view-jump-to-register= (thanks to duianto)
+- Fixed evilifying the pdf-outline-buffer-mode-map (thanks to Lin Sun)
 - Key bindings:
   - Added to pdf-view mode and transient state
     - ~[~ history-backward (previous view)
@@ -3434,6 +3454,8 @@ files (thanks to Daniel Nicolai)
     - ~SPC c s d~ Copy rpms to the phone
     - ~SPC c s i~ Install rpms into target
 **** Scala
+- Shortcut key for compiling integration tests in SBT (~It / compile~)
+  (thanks to Keith Pinson)
 - Shortcut key for compiling tests in SBT without running them (~Test / compile~)
   (thanks to Keith Pinson)
 - Shortcut keys for common/standard SBT commands (~scalafmtAll~, ~compile~ and ~test~)
@@ -3815,6 +3837,9 @@ files (thanks to Daniel Nicolai)
 - Fixed error on =diff-hl-margin-mode= function being nil during startup
   (thanks to Voleking)
 - Fixed =git-gutter+= refresh when a buffer is staged or unstaged in Magit
+- Evilify the svn/git/hg mode-maps after their mode files be loaded
+  (thanks to Lin Sun)
+
 **** Vue
 - Added a toggle state minified/full to the transient state (thanks to duianto)
 **** Xclipboard
