@@ -190,7 +190,7 @@ Latex exporter settings
          :unnarrowed t)
         ("p" "person" plain
          (file "~/.emacs.d/templates/person.org")
-         :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org.gpg"
+         :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                             "#+title: ${title}\n")
         :unnarrowed t)))
 

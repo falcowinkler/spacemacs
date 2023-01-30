@@ -145,9 +145,9 @@
          :unnarrowed t)
         ("p" "person" plain
          (file "~/.emacs.d/templates/person.org")
-         :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org.gpg"
+         :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                             "#+title: ${title}\n")
-         :unnarrowed t)))
+        :unnarrowed t)))
 
 (setq org-roam-ui-sync-theme t
           org-roam-ui-follow t
