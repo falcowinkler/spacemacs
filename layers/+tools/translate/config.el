@@ -1,8 +1,8 @@
-;;; config.el --- parinfer layer config file for Spacemacs.
+;;; funcs.el --- Semantic Layer functions File for Spacemacs
 ;;
 ;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
 ;;
-;; Author: Sylvain Benner <sylvain.benner@gmail.com>
+;; Author: Ray Wang <rayw.public@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
@@ -20,13 +20,11 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(spacemacs|defc parinfer-auto-download t
-  "If non nil auto install the parinfer rust library"
-  'boolean nil nil)
 
-(spacemacs|defc parinfer-library nil
-  "If non nil allows to set a custom library name and folder
+(defvar translate/paragraph-render 'posframe
+  "Paragraph render for displaying translate result.
+Currently support `posframe' and `buffer'.")
 
-Setting a path here and disabling `parinfer-auto-download'
-allows to use a local version of the library."
-  '(file :must-match t) nil nil)
+(defvar translate/word-render 'posframe
+  "Word render for displaying translate result.
+Currently support `posframe' and `buffer'.")

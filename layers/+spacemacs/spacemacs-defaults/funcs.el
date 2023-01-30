@@ -779,7 +779,8 @@ ones created by `magit' and `dired'."
 (defun spacemacs/copy-file-name ()
   "Copy and show the file name of the current buffer."
   (interactive)
-  (if-let (file-name (file-name-nondirectory (spacemacs--file-path)))
+  (if-let* ((file-path (spacemacs--file-path))
+            (file-name (file-name-nondirectory file-path)))
       (progn
         (kill-new file-name)
         (message "%s" file-name))
@@ -861,11 +862,11 @@ then apply that major mode to the new buffer."
   (interactive)
   (let ((newbuf (generate-new-buffer "untitled")))
     (cl-case split
-      ('left  (split-window-horizontally))
-      ('below (spacemacs/split-window-vertically-and-switch))
-      ('above (split-window-vertically))
-      ('right (spacemacs/split-window-horizontally-and-switch))
-      ('frame (select-frame (make-frame))))
+      (left  (split-window-horizontally))
+      (below (spacemacs/split-window-vertically-and-switch))
+      (above (split-window-vertically))
+      (right (spacemacs/split-window-horizontally-and-switch))
+      (frame (select-frame (make-frame))))
     ;; Prompt to save on `save-some-buffers' with positive PRED
     (with-current-buffer newbuf
       (setq-local buffer-offer-save t)
@@ -1263,7 +1264,7 @@ containing the current file by the default explorer."
   (when (active-minibuffer-window)
     (select-window (active-minibuffer-window))))
 
-;; http://stackoverflow.com/a/10216338/4869
+;; https://stackoverflow.com/a/10216338
 (defun spacemacs/copy-whole-buffer-to-clipboard ()
   "Copy entire buffer to clipboard"
   (interactive)
@@ -1307,7 +1308,7 @@ the right."
 
     (align-regexp start end complete-regexp group 1 t)))
 
-;; Modified answer from http://emacs.stackexchange.com/questions/47/align-vertical-columns-of-numbers-on-the-decimal-point
+;; Modified answer from https://emacs.stackexchange.com/a/48
 (defun spacemacs/align-repeat-decimal (start end)
   "Align a table of numbers on decimal points and dollar signs (both optional)"
   (interactive "r")

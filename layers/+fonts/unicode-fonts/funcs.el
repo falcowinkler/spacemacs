@@ -1,8 +1,8 @@
-;;; packages.el --- Github Layer packages File for Spacemacs
+;;; funcs.el --- unicode-fonts layer funcs file for Spacemacs. -*- lexical-binding: t -*-
 ;;
 ;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
 ;;
-;; Author: Sylvain Benner <sylvain.benner@gmail.com>
+;; Author: Lucius Hu
 ;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
@@ -20,24 +20,21 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Package deprecation notice shown at startup
-(warn "`github' layer is deprecated. See layer README.org for details.")
+;;; Commentary:
 
+;;; Code:
 
-(defconst github-packages
-  '(
-    grip-mode
-    ;; this package does not exits, we need it to wrap
-    ;; the call to spacemacs/declare-prefix.
-    (spacemacs-github :location built-in)))
+(defun unicode-fonts//setup-fonts (frame)
+  "Setup `unicode-fonts' package for FRAME.
 
-(defun github/init-grip-mode ()
-  (use-package grip-mode
-    :defer t
-    :init
-    (progn
-      (spacemacs/set-leader-keys
-        "ghp" 'grip-mode))))
+This functions setups `unicode-fonts' right away when starting a GUI Emacs.
+But if Emacs is running in a daemon, it postpone the setup until a GUI frame
+is opened."
+  (if (and frame (display-graphic-p frame))
+      (with-selected-frame frame
+        (require 'unicode-fonts)
+        (unicode-fonts-setup)
+        (remove-hook 'after-make-frame-functions #'unicode-fonts//setup-fonts))
+    (add-hook 'after-make-frame-functions #'unicode-fonts//setup-fonts)))
 
-(defun github/init-spacemacs-github ()
-  (spacemacs/declare-prefix "gh" "github"))
+;;; funcs.el ends here

@@ -75,6 +75,7 @@ the [[file:CHANGELOG.org][CHANGELOG.org]] file.
   (thanks to Sylvain Benner, Compro Prasad and Keith Simmons)
 - Added support for native fill column indicator in Emacs 27+ (thanks to
   Andriy Kmit)
+- Add support for background transparency aka true transparency. Key bindings are under ~SPC T B~ (thanks to JoshTRN)
 *** Breaking Changes
 **** Major
 - Support for Emacs 25 or Emacs 26 has been dropped, the minimal Emacs version
@@ -129,6 +130,8 @@ the [[file:CHANGELOG.org][CHANGELOG.org]] file.
     in Emacs 24.3 to ~timeclock-mode-line-display~ (thanks to Zach Pearson)
   - Added =vim-style-enable-undo-region= style variables to enable undo-region
     in Vim editing style; disabled by default. (thanks to Benedict HW)
+  - Added ~SPC m r R~ to show tide refactorings submenu (thanks to Roberto 
+    Previdi)
 - Other:
   - Support for multiple cursors using =evil-mc= is now encapsulated in the
     =multiple-cursors= layer (thanks to Codruț Constantin Gușoi)
@@ -342,12 +345,15 @@ In org-agenda-mode
   - Add Debian & Ubuntu package search engines (thanks to Alfonso Montero).
   - Allow to configure a TLD other than =.com= for Amazon searches (thanks to Alfonso Montero).
   - Add Rails API search engine
+  - Add Docker Hub image search engine (thanks to Alfonso Montero).
 ***** Spacemacs-navigation
 - Key bindings:
   - Add ~J/K~ to scroll up/down (or next/previous node) in Info-mode
   - Add ~o~ to link-hint-open-link in woman-mode
 ***** Shaders
 - =shaders= layer has been moved to =gpu= layer.
+***** Shell-scripts
+- Add variable =shell-scripts-shfmt-args= to pass through arguments to =shfmt= package.
 ***** Syntax checking
 - Key bindings (thanks to Loris Lucido):
   - Key binding ~SPC e e~ is now for triggering a syntax check, the old action
@@ -824,6 +830,8 @@ Other:
   - Add evil-jump-backward/forward (=C-o=/=C-i=) keybindings to
     evil-evilified-state-map (thanks to Daniel Nicolai)
   - Improve helm completion in spacemacs-help (thanks to @dankessler)
+  - Improve the =configuration-layer/declare-layer-dependencies= to avoid loading
+    the dependence layers multiple times (thank to Lin Sun)
 *** Distribution changes
 - Refactored =spacemacs-bootstrap=, =spacemacs-ui=, and =spacemacs-ui-visual=
   layers:
@@ -865,6 +873,8 @@ Other:
     (thanks to rayw000)
   - Added =string-edit= package to =spacemacs-editing= layer
     (thanks to Ivan Yonchovski)
+  - Remove package =evil-ediff=
+    (thanks to Xuanqing Xu)
 - Key bindings:
   - Toggle line numbers (i.e. toggle =display-line-numbers-mode=) via ~SPC t n n~
     without having to think about which variant of line numbers you have turned
@@ -1192,6 +1202,7 @@ Other:
   - Added ~SPC x n~ for multi-line transient state
     (thanks to Tristan Harmer)
   - Added ~s~ =hydra-dired-quick-sort/body= (thanks to duianto)
+  - Added ~SPC p E~ for =projectile-find-references= (thanks to Alfonso Montero)
 - Improvements:
   - Inhibited golden-ratio mode from interfering with ediff windows
   - Rewrote window layout functions for ~SPC w 1~, ~SPC w 2~, ~SPC w 3~, and
@@ -1916,6 +1927,9 @@ Other:
 - Fixed: broken package declaration for dockerfile-mode
   (thanks to Maximilian Wolff)
 - Added LSP support
+- Dockerfile mode keybindings (thanks to Alfonso Montero):
+  - Flatten ~cb~ and ~cB~ build commands into ~b~ and ~B~ to save keystrokes.
+  - Add keybindings to some =docker= package commands for convenience.
 **** Dotnet
 - Key bindings:
   - Added key bindings for =dotnet= (thanks to Jordan Kaye):
@@ -2914,6 +2928,8 @@ files (thanks to Daniel Nicolai)
 - Fixed ocamlformat not properly initialized by following do (thanks to Nicolas Raymond)
 - Allow new OPAM share commandline syntax (thanks to Cody McKenzie)
 **** Org
+- Add ~SPC m [~ for =org-agenda-file-to-front= and ~SPC m ]~ for =org-remove-file=
+  (thanks to Keith Pinson).
 - Add initial =org-transclusion= support behind =org-enable-transclusion-support=
   flag (thanks to Keith Pinson).
 - When =org-appear= is set to be triggered manually and Spacemacs' editing mode is
@@ -3554,6 +3570,7 @@ files (thanks to Daniel Nicolai)
   - function: =spacemacs/make-variable-layout-local=
   (thanks to JAremko and duianto)
 - Better keybindings for ~ESC~ and ~RET~ in vterm =evil-normal-state= (thanks to kenkangxgwe)
+- Added support for multi-vterm as default terminal option
 **** Shell Scripts
 - Added new company-shell environment variable backend
   (thanks to Alexander-Miller)
@@ -3707,6 +3724,7 @@ files (thanks to Daniel Nicolai)
   (thanks to Dominic Pearson, Muneeb Shaikh)
 - Added highly accessible =modus-themes= (thanks to Muneeb Shaikh)
 - Added =doom-gruvbox-light= theme (thanks to John Stevenson)
+- Removed obsolete =darkburn-theme= (thanks to Muneeb Shaikh)
 **** Tmux
 - Prevent =tmux-command= at GUI mode (thanks to Isaac Zeng)
 - Fixed regression in tmux by setting keybindings using =use-package=

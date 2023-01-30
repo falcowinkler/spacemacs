@@ -1,8 +1,8 @@
-;;; layers.el --- GitHub layer layers File for Spacemacs
+;;; packages.el --- apache layer packages file for Spacemacs.
 ;;
 ;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
 ;;
-;; Author: Sylvain Benner <sylvain.benner@gmail.com>
+;; Author: Nathaniel Waisbrot <code@waisbrot.net>
 ;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
@@ -21,5 +21,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+(defconst apache-packages '(apache-mode))
 
-(configuration-layer/declare-layer-dependencies '(version-control))
+(defun apache/init-apache-mode()
+  (use-package apache-mode :defer t))
