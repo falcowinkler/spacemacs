@@ -1,6 +1,6 @@
 ;;; funcs.el --- Helm Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -93,7 +93,7 @@
    `(cond
      ,@(mapcar
         (lambda (x)
-          `((executable-find ,x)
+          `((executable-find ,x t)
             ',(let ((func
                      (intern
                       (format (if default-inputp

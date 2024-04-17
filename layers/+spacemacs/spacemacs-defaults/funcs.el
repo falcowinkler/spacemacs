@@ -1,6 +1,6 @@
 ;;; funcs.el --- Spacemacs Defaults Layer functions File
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -20,8 +20,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-(require 'cl-lib)
 
 (defun spacemacs//run-local-vars-mode-hook ()
   "Run a hook for the major-mode after the local variables have been processed."
@@ -141,9 +139,8 @@ If not in such a search box, fall back on `Custom-newline'."
         (progn
           (indent-region (region-beginning) (region-end))
           (message "Indented selected region."))
-      (progn
-        (evil-indent (point-min) (point-max))
-        (message "Indented buffer.")))
+      (evil-indent (point-min) (point-max))
+      (message "Indented buffer."))
     (whitespace-cleanup)))
 
 ;; http://emacsblog.org/2007/01/17/indent-whole-buffer/
@@ -155,12 +152,11 @@ If not in such a search box, fall back on `Custom-newline'."
         (progn
           (untabify (region-beginning) (region-end))
           (indent-region (region-beginning) (region-end)))
-      (progn
-        (set-buffer-file-coding-system default-file-name-coding-system)
-        ;; (set-buffer-file-coding-system 'utf-8-unix)
-        (untabify (point-min) (point-max))
-        (indent-region (point-min) (point-max))
-        (whitespace-cleanup)))))
+      (set-buffer-file-coding-system default-file-name-coding-system)
+      ;; (set-buffer-file-coding-system 'utf-8-unix)
+      (untabify (point-min) (point-max))
+      (indent-region (point-min) (point-max))
+      (whitespace-cleanup))))
 
 (defun spacemacs//trailing-whitespace ()
   (setq show-trailing-whitespace dotspacemacs-show-trailing-whitespace))
@@ -739,20 +735,14 @@ Returns:
   "Retrieve the file path of the current buffer,
 including line and column number.
 
+This function respects the `column-number-indicator-zero-based' variable.
+
 Returns:
   - A string containing the file path in case of success.
   - `nil' in case the current buffer does not have a directory."
   (when-let (file-path (spacemacs--file-path-with-line))
-    (concat
-     file-path
-     ":"
-     (number-to-string (if (and
-                            ;; Emacs 26 introduced this variable. Remove this
-                            ;; check once 26 becomes the minimum version.
-                            (boundp column-number-indicator-zero-based)
-                            (not column-number-indicator-zero-based))
-                           (1+ (current-column))
-                         (current-column))))))
+    (format "%s:%s" file-path
+            (+ (current-column) (if column-number-indicator-zero-based 0 1)))))
 
 (defun spacemacs/copy-directory-path ()
   "Copy and show the directory path of the current buffer.
@@ -979,6 +969,17 @@ Possible values:
     (defun my-delete-other-windows () (delete-other-windows))
     (setq spacemacs-window-split-delete-function 'my-delete-other-windows)")
 
+(defun spacemacs//window-split-eligible-buffers ()
+  "Return a list of buffers to display automatically when splitting windows.
+
+This excludes ephemeral buffers (those whose names begin with a
+space), unless they are visitin a file, just as `list-buffers' does."
+  (seq-remove
+   (lambda (b)
+     (and (string= (substring (buffer-name b) 0 1) " ")
+          (not (buffer-file-name b))))
+   (buffer-list)))
+
 (defun spacemacs/window-split-grid (&optional purge)
   "Set the layout to a 2x2 grid.
 
@@ -994,7 +995,7 @@ as a means to remove windows, regardless of the value in
         (delete-other-windows))
     (funcall spacemacs-window-split-delete-function))
   (if (spacemacs--window-split-splittable-windows)
-      (let* ((previous-files (buffer-list))
+      (let* ((previous-files (spacemacs//window-split-eligible-buffers))
              (second (split-window-below))
              (third (split-window-right))
              (fourth (split-window second nil 'right)))
@@ -1019,7 +1020,7 @@ as a means to remove windows, regardless of the value in
         (delete-other-windows))
     (funcall spacemacs-window-split-delete-function))
   (if (spacemacs--window-split-splittable-windows)
-      (let* ((previous-files (buffer-list))
+      (let* ((previous-files (spacemacs//window-split-eligible-buffers))
              (second (split-window-right))
              (third (split-window second nil 'right)))
         (set-window-buffer second (or (nth 1 previous-files) "*scratch*"))
@@ -1099,7 +1100,7 @@ the `kill-matching-buffers` for grateful killing. The optional 2nd argument
 indicates whether to kill internal buffers too.
 
 Returns the count of killed buffers."
-  (let* ((buffers (remove-if-not
+  (let* ((buffers (cl-remove-if-not
                    (lambda (buffer)
                      (let ((name (buffer-name buffer)))
                        (and name (not (string-equal name ""))
@@ -1120,50 +1121,67 @@ Returns a message with the count of killed buffers."
    (format "%d buffer(s) killed."
            (spacemacs/rudekill-matching-buffers regexp internal-too))))
 
-;; advise to prevent server from closing
+;; advise to prevent server from closing when the window manager closes the last
+;; Emacs frame, and `dotspacemacs-persistent-server' is non-nil.
 
 (defvar spacemacs-really-kill-emacs nil
-  "prevent window manager close from closing instance.")
+  "If nil, prevent window manager and \\[save-buffers-kill-emacs] from killing Emacs.
+
+This only has an effect if `dotspacemacs-persistent-server' is non-nil.
+
+This variable should be let-bound to t to actually kill Emacs,
+such as is done by \\[spacemacs/prompt-kill-emacs].")
 
 (defun spacemacs//persistent-server-running-p ()
-  "Requires spacemacs-really-kill-emacs to be toggled and
-dotspacemacs-persistent-server to be t"
+  "Return t if `spacemacs-really-kill-emacs' should prevent killing Emacs."
   (and (fboundp 'server-running-p)
        (server-running-p)
        dotspacemacs-persistent-server))
 
-(defadvice kill-emacs (around spacemacs-really-exit activate)
-  "Only kill emacs if a prefix is set"
-  (if (and (not spacemacs-really-kill-emacs)
-           (spacemacs//persistent-server-running-p))
-      (spacemacs/frame-killer)
-    ad-do-it))
+(define-advice kill-emacs (:around (f &rest args) spacemacs-really-exit)
+  "Do not actually kill Emacs if a persistent server is running.
 
-(defadvice save-buffers-kill-emacs (around spacemacs-really-exit activate)
-  "Only kill emacs if a prefix is set"
+If `dotspacemacs-persistent-server' is non-nil and the Emacs
+server is running, just kill the current frame instead of the
+Emacs server.
+
+Setting `spacemacs-really-kill-emacs' non-nil overrides this advice."
   (if (and (not spacemacs-really-kill-emacs)
            (spacemacs//persistent-server-running-p))
       (spacemacs/frame-killer)
-    ad-do-it))
+    (apply f args)))
+
+(define-advice save-buffers-kill-emacs (:around (f &rest args) spacemacs-really-exit)
+  "Do not actually kill Emacs if a persistent server is running.
+
+If `dotspacemacs-persistent-server' is non-nil and the Emacs
+server is running, just kill the current frame instead of the
+Emacs server.
+
+Setting `spacemacs-really-kill-emacs' non-nil overrides this advice."
+  (if (and (not spacemacs-really-kill-emacs)
+           (spacemacs//persistent-server-running-p))
+      (spacemacs/frame-killer)
+    (apply f args)))
 
 (defun spacemacs/save-buffers-kill-emacs ()
   "Save all changed buffers and exit Spacemacs"
   (interactive)
-  (setq spacemacs-really-kill-emacs t)
-  (save-buffers-kill-emacs))
+  (let ((spacemacs-really-kill-emacs t))
+    (save-buffers-kill-emacs)))
 
 (defun spacemacs/kill-emacs ()
   "Lose all changes and exit Spacemacs"
   (interactive)
-  (setq spacemacs-really-kill-emacs t)
-  (kill-emacs))
+  (let ((spacemacs-really-kill-emacs t))
+    (kill-emacs)))
 
 (defun spacemacs/prompt-kill-emacs ()
   "Prompt to save changed buffers and exit Spacemacs"
   (interactive)
-  (setq spacemacs-really-kill-emacs t)
   (save-some-buffers nil t)
-  (kill-emacs))
+  (let ((spacemacs-really-kill-emacs t))
+    (kill-emacs)))
 
 (defun spacemacs/frame-killer ()
   "Kill server buffer and hide the main Emacs window"
@@ -1209,11 +1227,6 @@ useful to use full screen on macOS without animations."
              (if (eq (frame-parameter nil 'maximized) 'maximized)
                  'maximized)
            'fullboth)))))
-
-(defun spacemacs/safe-revert-buffer ()
-  "Prompt before reverting the file."
-  (interactive)
-  (revert-buffer nil nil))
 
 (defun spacemacs/safe-erase-buffer ()
   "Prompt before erasing the content of the file."

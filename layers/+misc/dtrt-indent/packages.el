@@ -1,6 +1,6 @@
 ;;; packages.el --- dtrt-indent layer packages file for Spacemacs.
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Kevin Doherty <kjd@csail.mit.edu>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -31,7 +31,6 @@
                 (dtrt-indent-mode)
                 (dtrt-indent-adapt)))
     :config
-    (progn
-      (spacemacs|hide-lighter dtrt-indent-mode))))
+    (spacemacs|hide-lighter dtrt-indent-mode)))
 
 ;;; packages.el ends here

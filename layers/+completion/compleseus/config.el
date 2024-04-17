@@ -1,6 +1,6 @@
 ;;; config.el --- compleseus configuration File for Spacemacs
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Thanh Vuong <thanhvg@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -37,12 +37,12 @@
           ,(lambda ()
              (consult--buffer-query ;; :sort 'visibility
               :predicate (lambda (buff)
-                           (and (persp-contain-buffer-p buff)
+                           (and (compleseus//persp-contain-buffer-p buff)
                                 (buffer-file-name buff)
                                 (buffer-modified-p buff)))
               ;; :directory 'project
               :as #'buffer-name)))
-  "Per perpecstive modified buffer source.")
+  "Per-perspective modified buffer source.")
 
 (defvar consult--source-persp-buffers
   `(
@@ -57,6 +57,6 @@
     ,(lambda ()
        (consult--buffer-query
         :sort 'visibility
-        :predicate #'persp-contain-buffer-p
+        :predicate #'compleseus//persp-contain-buffer-p
         :as #'buffer-name)))
-  "Per perpecstive buffer source.")
+  "Per-perspective buffer source.")

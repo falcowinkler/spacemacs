@@ -1,6 +1,6 @@
 ;;; core-themes-support.el --- Spacemacs Core File -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -261,8 +261,8 @@
     (kaolin-temple                    . kaolin-themes)
     (kaolin-valley-dark               . kaolin-themes)
     (kaolin-valley-light              . kaolin-themes)
-    (majapahit-dark                   . majapahit-theme)
-    (majapahit-light                  . majapahit-theme)
+    (majapahit-dark                   . majapahit-themes)
+    (majapahit-light                  . majapahit-themes)
     (material-light                   . material-theme)
     (mccarthy                         . sublime-themes)
     (minimal-light                    . minimal-theme)
@@ -434,14 +434,10 @@ When BACKWARD is non-nil, or with universal-argument, cycle backwards."
   (interactive)
   (spacemacs/cycle-spacemacs-theme t))
 
-(defadvice load-theme (after spacemacs/load-theme-adv activate)
+(define-advice load-theme (:after (theme &rest _) spacemacs/load-theme-adv)
   "Perform post load processing."
-  (let ((theme (ad-get-arg 0)))
-    ;; Without this a popup is raised every time emacs25 starts up for
-    ;; assignment to a free variable
-    (with-no-warnings
-      (setq spacemacs--cur-theme theme))
-    (spacemacs/post-theme-init theme)))
+  (setq spacemacs--cur-theme theme)
+  (spacemacs/post-theme-init theme))
 
 (defun spacemacs/theme-loader ()
   "Call appropriate theme loader based on completion framework."

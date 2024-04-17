@@ -1,6 +1,6 @@
 ;;; config.el --- OSX Layer config File for Spacemacs
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -46,7 +46,7 @@
    Possible values are `super' `meta' `hyper' `alt' `none'.
    Default: `meta'.
    For backwards compatibility the variable `osx-use-option-as-meta'
-   takes precedence is set to t.")
+   takes precedence if set to t.")
 (defvar osx-function-as nil
   "Sets the key binding of the `FUNCTION' key on macOS.
    Possible values are `super' `meta' `hyper' `alt' `nil'.

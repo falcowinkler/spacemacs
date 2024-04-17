@@ -1,6 +1,6 @@
 ;;; core-funcs.el --- Spacemacs Core File -*- lexical-binding: t -*-
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -30,8 +30,11 @@ values."
 
 (defun spacemacs/system-is-mac ()
   (eq system-type 'darwin))
+
 (defun spacemacs/system-is-linux ()
-  (eq system-type 'gnu/linux))
+ (or  (eq system-type 'gnu/linux)
+      (eq system-type 'android)))
+
 (defun spacemacs/system-is-mswindows ()
   (eq system-type 'windows-nt))
 

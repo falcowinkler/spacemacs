@@ -1,6 +1,6 @@
 ;;; funcs.el --- Python Layer functions File for Spacemacs
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -91,7 +91,6 @@
       (progn
         (require (pcase python-lsp-server
                    ('pylsp 'lsp-pylsp)
-                   ('mspyls 'lsp-python-ms)
                    ('pyright 'lsp-pyright)
                    (x (user-error "Unknown value for `python-lsp-server': %s" x))))
         (lsp-deferred))
@@ -155,9 +154,9 @@ as the pyenv version then also return nil. This works around https://github.com/
 ROOT-DIR should be the directory path for the environment, `nil' for clean up."
   (when (or (null python-shell-interpreter)
             (equal python-shell-interpreter spacemacs--python-shell-interpreter-origin))
-    (if-let* ((root-dir)
-              (default-directory root-dir))
-        (if-let* ((ipython (spacemacs/pyenv-executable-find "ipython"))
+    (if-let* ((default-directory root-dir))
+        (if-let* ((ipython (cl-find-if 'spacemacs/pyenv-executable-find
+                                       '("ipython3" "ipython")))
                   (version (replace-regexp-in-string
                             "\\(\\.dev\\)?[\r\n|\n]$" ""
                             (shell-command-to-string (format "\"%s\" --version" ipython)))))
@@ -166,8 +165,8 @@ ROOT-DIR should be the directory path for the environment, `nil' for clean up."
                         (concat "-i" (unless (version< version "5") " --simple-prompt")))
           ;; else try python3 or python
           (setq-local python-shell-interpreter
-                      (or (spacemacs/pyenv-executable-find "python3")
-                          (spacemacs/pyenv-executable-find "python")
+                      (or (cl-find-if 'spacemacs/pyenv-executable-find
+                                      '("python3" "python2" "python"))
                           "python3")
                       python-shell-interpreter-args "-i"))
       ;; args is nil, clean up the variables

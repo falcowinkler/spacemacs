@@ -1,6 +1,6 @@
 ;;; keybindings.el --- Spacemacs Defaults Layer key-bindings File
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -66,6 +66,7 @@
                                        "p"   "projects"
                                        "q"   "quit"
                                        "r"   "registers/rings/resume"
+                                       "rd"  "purpose-toggle-window"
                                        "s"   "search/symbol"
                                        "sa"  "ag"
                                        "sg"  "grep"
@@ -257,7 +258,7 @@
    ("m" spacemacs/switch-to-messages-buffer "Messages buffer")
    ("P" spacemacs/copy-clipboard-to-whole-buffer "Paste and replace buffer")
    ("p" previous-buffer "Previous buffer")
-   ("R" spacemacs/safe-revert-buffer "Revert buffer...")
+   ("R" revert-buffer "Revert buffer...")
    ("s" spacemacs/switch-to-scratch-buffer "Scratch buffer")
    ("u" spacemacs/reopen-killed-buffer "Reopen last killed buffer")
    ("x" kill-buffer-and-window "Kill buffer and close window")
@@ -418,6 +419,7 @@
   "hdc" 'describe-char
   "hdf" 'describe-function
   "hdk" 'describe-key
+  "hdK" 'describe-keymap
   "hdl" 'spacemacs/describe-last-keys
   "hdp" 'describe-package
   "hdP" 'configuration-layer/describe-package
@@ -774,7 +776,9 @@ respond to this toggle."
   ("b" (cond ((configuration-layer/layer-used-p 'helm)
               (helm-buffers-list))
              ((configuration-layer/layer-used-p 'ivy)
-              (ivy-switch-buffer))))
+              (ivy-switch-buffer))
+             ((configuration-layer/layer-used-p 'compleseus)
+              (spacemacs/compleseus-switch-to-buffer))))
   ("d" spacemacs/kill-this-buffer)
   ("C-d" bury-buffer)
   ("z" recenter-top-bottom)
@@ -1118,4 +1122,3 @@ If FRAME is nil, it defaults to the selected frame."
 
 (spacemacs/set-leader-keys "TB"
   'spacemacs/scale-background-transparency-transient-state/spacemacs/toggle-background-transparency)
-

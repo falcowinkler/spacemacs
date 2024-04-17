@@ -1,6 +1,6 @@
 ;;; core-load-paths.el --- Spacemacs Core File  -*- no-byte-compile: t; lexical-binding: t -*-
 ;;
-;; Copyright (c) 2012-2022 Sylvain Benner & Contributors
+;; Copyright (c) 2012-2024 Sylvain Benner & Contributors
 ;;
 ;; Author: Sylvain Benner <sylvain.benner@gmail.com>
 ;; URL: https://github.com/syl20bnr/spacemacs
@@ -110,8 +110,6 @@
 ;; TODO: Should also catch any IO error such as permission error (Apr 25 2021 Lucius)
 (unless (file-exists-p spacemacs-cache-directory)
   (make-directory spacemacs-cache-directory))
-
-(setq pcache-directory (concat spacemacs-cache-directory "pcache/"))
 
 ;;;; Load Paths
 (dolist (subdirectory '(nil "libs/" "libs/spacemacs-theme/" "libs/forks/"))
