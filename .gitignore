@@ -1,3 +1,4 @@
+org-persist
 *.db
 *.elc
 *.pyc

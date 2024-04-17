@@ -1,3 +1,12 @@
+(require 'epa-file)
+(setf epa-pinentry-mode 'loopback)
+(setq epa-file-select-keys nil)
+(setq epa-file-encrypt-to '("falcowinkler@icloud.com"))
+
+(setq ns-alternate-modifier 'meta
+      ns-right-alternate-modifier 'none
+      )
+
 (require 'ox-twbs)
 (require 'emojify)
 
@@ -15,8 +24,6 @@
                  (org-present-small)
                  ))))
 
-(setq org-roam-v2-ack t)
-
 (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)
                                (python . t)
@@ -28,11 +35,11 @@
   (not (member lang '("python" "dot" "latex" "ledger"))))
 (setq org-confirm-babel-evaluate 'my-org-confirm-babel-evaluate)
 
-(setq org-publish-project-alist 
+(setq org-publish-project-alist
           '(("site"
-             :base-directory "~/Desktop/falcowinkler.github.io/org"
+             :base-directory "~/projects/falcowinkler.github.io/org"
              :base-extension "org"
-             :publishing-directory "~/Desktop/falcowinkler.github.io"
+             :publishing-directory "~/projects/falcowinkler.github.io"
              :recursive t
              :publishing-function org-twbs-publish-to-html
              :headline-levels 4
@@ -40,10 +47,10 @@
              :auto-postamble nil
              :html-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"css/python_course.css\">")
             ("site-images"
-             :base-directory "~/Desktop/falcowinkler.github.io/org"
+             :base-directory "~/projects/falcowinkler.github.io/org"
              :base-extension "png\\|jpg\\|svg"
              :recursive t
-             :publishing-directory "~/Desktop/falcowinkler.github.io/images"
+             :publishing-directory "~/projects/falcowinkler.github.io/images"
              :publishing-function org-publish-attachment
  )))
 
@@ -134,38 +141,24 @@
          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
                             "#+title: ${title}\n")
          :unnarrowed t)
-        ("d" "default-encrypted" plain "%?"
+        ("e" "default-encrypted" plain "%?"
          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org.gpg"
                             "#+title: ${title}\n")
          :unnarrowed t)
-        ("s" "solution" plain
-         "* Current state\n%?\n* Proposed Solutions\n\n* Advantages\n\n* Disadvantages"
+        ("s" "szu-software" plain "%?"
          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                            "#+title: ${title}\n")
+                            "#+title: ${title}\n#+filetags: :software:szu:\n")
          :unnarrowed t)
-        ("p" "person" plain
+        ("p" "szu-person" plain
          (file "~/.emacs.d/templates/person.org")
          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                            "#+title: ${title}\n")
+                            "#+title: ${title}\n#+filetags: :person:szu:\n")
         :unnarrowed t)))
 
 (setq org-roam-ui-sync-theme t
           org-roam-ui-follow t
           org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start t)
-
-(require 'epa-file)
-(setf epa-pinentry-mode 'loopback)
-(setq epa-file-select-keys nil)
-(setq epa-file-encrypt-to '("falcowinkler@icloud.com"))
-
-;; (dap-register-debug-template
-;;  "default pytest debur"
-;;  (list :type "python"
-;;        :request "launch"
-;;        :args "-m pytest -sv"
-;;        :target-module "tests"
-;;        :name "Default pytest debug"))
+         org-roam-ui-open-on-start t)
 
 (global-set-key (kbd "M-i") 'imenu)
 
@@ -181,57 +174,4 @@
 (with-eval-after-load 'treemacs
   (treemacs-resize-icons 15))
 
-(require 'jq-mode)
-
-;; --- jq support
-(defun restclient-jq-result-end-point ()
-  (save-excursion
-    (goto-char (point-max))
-    (or (and (re-search-backward "^[^/].*" nil t)
-	     (line-end-position))
-	(point-max))))
-
-(defun restclient-jq-get-var (jq-pattern)
-  (with-temp-buffer
-    (let ((output (current-buffer)))
-      (with-current-buffer restclient-same-buffer-response-name
-        (call-process-region
-         (point-min)
-         (restclient-jq-result-end-point)
-         shell-file-name
-         nil
-         output
-         nil
-         shell-command-switch
-         (format "%s %s %s"
-                 jq-interactive-command
-		 "-r"
-                 (shell-quote-argument jq-pattern))))
-      (string-trim (buffer-string)))))
-
-(defun restclient-jq-json-var-function (args args-offset)
-  (save-match-data
-    (and (string-match "\\(:[^: \n]+\\) \\(.*\\)$" args)
-         (let ((var-name (match-string 1 args))
-               (jq-patt (match-string 2 args)))
-           (lambda ()
-             (let ((resp-val (restclient-jq-get-var jq-patt)))
-               (restclient-remove-var var-name)
-               (restclient-set-var var-name resp-val)
-               (message "restclient var [%s = \"%s\"] " var-name resp-val)))))))
-
-(defun restclient-jq-interactive-result ()
-  (interactive)
-  (flush-lines "^//.*") ;; jq doesnt like comments
-  (jq-interactively (point-min) (restclient-jq-result-end-point)))
-
-;; todo: eval-after-load should be used in configuration, not
-;; packages. Replace with a better solution.
-(eval-after-load 'restclient
-  '(progn
-     (restclient-register-result-func
-      "jq-set-var" #'restclient-jq-json-var-function
-      "Set a restclient variable with the value jq expression,
-       takes var & jq expression as args.
-       eg. -> jq-set-var :my-token .token")
-     (define-key restclient-response-mode-map  (kbd "C-c C-j") #'restclient-jq-interactive-result)))
+(add-to-list 'image-types 'svg)
